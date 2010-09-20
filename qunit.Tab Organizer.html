@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <!--
+        Copyright © 2010 Paul Chapman
+
+        Copying and distribution of this file, with or without modification,
+        are permitted in any medium without royalty provided the copyright
+        notice and this notice are preserved.  This file is offered as-is,
+        without any warranty.
+    -->
+
+    <title>QUnit - Tab Organizer</title>
+
+    <!--<style type="text/css" media="screen">
+        @import url(lib/testsuite.css);
+        @import url(lib/testcustom.css);
+    </style>
+    <link href="lib/testsuite.css" type="text/css" rel="stylesheet" media="screen">-->
+    <link href="lib/testcustom.css" type="text/css" rel="stylesheet" media="screen">
+    <script src="lib/jquery.min.js"></script>
+    <script src="lib/testrunner.js"></script>
+
+    <script src="http://tab-organizer.googlecode.com/hg/lib/Global%20Helper.js"></script>
+    <script src="http://tab-organizer.googlecode.com/hg/lib/Event%20Helper.js"></script>
+    <script src="http://tab-organizer.googlecode.com/hg/lib/Undo.js"></script>
+    <script src="http://tab-organizer.googlecode.com/hg/lib/Color.js"></script>
+</head>
+<body>
+    <h1>QUnit - Tab Organizer</h1>
+    <h2 id="userAgent"></h2>
+    <ol id="tests"></ol>
+    <div id="main"></div>
+    <script>
+        "use strict";
+        /*global equals, expect, module, ok, same, start, stop, test */
+
+        /*test("Test QUnit assertions.", function () {
+            expect(6);
+
+            ok(false, "IGNORE THIS, expected: false result: true");
+            ok(true, "IGNORE THIS: true");
+            equals(true, false, "IGNORE THIS");
+            equals(true, true, "IGNORE THIS");
+            same(true, false, "IGNORE THIS");
+            same(true, true, "IGNORE THIS");
+        });*/
+
+        module("Color");
+        test("(fn) toHex", function () {
+            expect(7);
+
+            same(Color.toHex(0, 0, 0), "#000000");
+            same(Color.toHex(255, 255, 255), "#ffffff");
+            same(Color.toHex(100, 50, 0), "#643200");
+            same(Color.toHex(100, -10, 175), "#6400af");
+            same(Color.toHex(9001, -10, 175), "#ff00af");
+            same(Color.toHex(true, false, null), "#000000");
+            same(Color.toHex(), "#000000");
+        });
+        test("(fn) toRGB", function () {
+            expect(19);
+
+            function check(action) {
+                try {
+                    action();
+                } catch (e) {
+                    same(e.toString(), "Error: Number must be 3 or 6 characters long.");
+                }
+            }
+            function checktype(action) {
+                try {
+                    action();
+                } catch (e) {
+                    same(e.toString(), "TypeError: 1st argument must be a string.");
+                }
+            }
+            function checkhash(action) {
+                try {
+                    action();
+                } catch (e) {
+                    same(e.toString(), "Error: 1st character must be a hash (#)");
+                }
+            }
+
+            same(Color.toRGB("#000"), [0, 0, 0]);
+            same(Color.toRGB("#000000"), [0, 0, 0]);
+
+            same(Color.toRGB("#fff"), [255, 255, 255]);
+            same(Color.toRGB("#FFF"), [255, 255, 255]);
+            same(Color.toRGB("#ffffff"), [255, 255, 255]);
+            same(Color.toRGB("#FFFFFF"), [255, 255, 255]);
+
+            same(Color.toRGB("#643200"), [100, 50, 0]);
+            same(Color.toRGB("#6400af"), [100, 0, 175]);
+
+            same(Color.toRGB("#ff00af"), [255, 0, 175]);
+            same(Color.toRGB("#Ff00aF"), [255, 0, 175]);
+
+            check(function () {
+                Color.toRGB("#f0Af");
+            });
+            check(function () {
+                Color.toRGB("#f0Af");
+            });
+            check(function () {
+                Color.toRGB("#gzndUR4au");
+            });
+            check(function () {
+                Color.toRGB("#ff00af223aa,uha14apdha");
+            });
+
+            checkhash(function () {
+                Color.toRGB("000000");
+            });
+
+            checktype(function () {
+                Color.toRGB(true);
+            });
+            checktype(function () {
+                Color.toRGB(false);
+            });
+            checktype(function () {
+                Color.toRGB(null);
+            });
+            checktype(function () {
+                Color.toRGB();
+            });
+        });
+        test("(fn) toHex + toRGB", function () {
+            expect(8);
+
+            var input;
+
+            input = [ 0, 0, 0 ];
+            same(Color.toRGB(Color.toHex.apply(this, input)), input);
+
+            input = [ 255, 255, 255 ];
+            same(Color.toRGB(Color.toHex.apply(this, input)), input);
+
+            input = [ 100, 50, 0 ];
+            same(Color.toRGB(Color.toHex.apply(this, input)), input);
+
+
+            input = "#000000";
+            same(Color.toHex.apply(this, Color.toRGB(input)), input);
+
+            input = "#ffffff";
+            same(Color.toHex.apply(this, Color.toRGB(input)), input);
+
+            input = "#643200";
+            same(Color.toHex.apply(this, Color.toRGB(input)), input);
+
+            input = "#6400af";
+            same(Color.toHex.apply(this, Color.toRGB(input)), input);
+
+            input = "#ff00af";
+            same(Color.toHex.apply(this, Color.toRGB(input)), input);
+        });
+
+
+        module("Undo");
+        test("", function () {
+            expect(22);
+
+            var types = {
+                foobar: true,
+                quxcorge: true,
+                testing: true
+            };
+
+            Undo.setRule("testing", function (info) {
+                same(types.foobar, true);
+                same(types.quxcorge, true);
+                same(types.testing, true);
+                types.testing = false;
+
+                same(info.foo, "bar");
+            });
+            Undo.setRule("foobar", function (info) {
+                same(types.foobar, true);
+                same(types.quxcorge, false);
+                same(types.testing, false);
+                types.foobar = false;
+
+                same(info.message, "hello");
+            });
+            Undo.setRule("quxcorge", function (info) {
+                same(types.foobar, true);
+                same(types.quxcorge, true);
+                same(types.testing, false);
+                types.quxcorge = false;
+
+                same(info.message, "goodbye");
+            });
+
+            same(Undo.length, 0);
+            Undo.push("foobar", {
+                message: "hello"
+            });
+            same(Undo.length, 1);
+            Undo.push("quxcorge", {
+                message: "goodbye"
+            });
+            same(Undo.length, 2);
+            Undo.push("testing", {
+                foo: "bar"
+            });
+            same(Undo.length, 3);
+
+            Undo.pop();
+            same(Undo.length, 2);
+            Undo.pop();
+            same(Undo.length, 1);
+            Undo.pop();
+            same(Undo.length, 0);
+
+            same(types.foobar, false);
+            same(types.quxcorge, false);
+            same(types.testing, false);
+        });
+        test("(fn) reset", function () {
+            expect(5);
+
+            same(Undo.length, 0);
+            Undo.push("foobar", {
+                message: "hello"
+            });
+            same(Undo.length, 1);
+            Undo.push("quxcorge", {
+                message: "goodbye"
+            });
+            same(Undo.length, 2);
+            Undo.push("testing", {
+                foo: "bar"
+            });
+            same(Undo.length, 3);
+
+            Undo.reset();
+            same(Undo.length, 0);
+
+            Undo.pop();
+        });
+
+
+        module("Array.prototype");
+        test("(fn) range", function () {
+            expect(11);
+
+            var array = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+
+            same(array.range(true), []);
+            same(array.range(false), []);
+            same(array.range(null), []);
+            same(array.range(""), []);
+            same(array.range(0), []);
+            same(array.range(5), []);
+            same(array.range(10), []);
+            same(array.range({}), []);
+            same(array.range([]), []);
+            same(array.range(function () {}), []);
+
+            same(array, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]);
+        });
+        test("(fn) range (min + max)", function () {
+            expect(12);
+
+            var array = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+
+            same(array.range(function (item) {
+                return true;
+            }), [ 0, 1 ]);
+
+            same(array.range(0, 5), [ 0, 1, 2, 3, 4, 5 ]);
+            same(array.range(5, 0), [ 0, 1, 2, 3, 4, 5 ]);
+
+            same(array.range(3, 5), [ 3, 4, 5 ]);
+            same(array.range(5, 3), [ 3, 4, 5 ]);
+
+            same(array.range(3), []);
+            same(array.range(3, 3), []);
+            same(array.range(3, 11), []);
+            same(array.range(11, 3), []);
+            same(array.range(11), []);
+            same(array.range(false), []);
+
+            same(array, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]);
+        });
+        test("(fn) range (numbers)", function () {
+            expect(10);
+
+            var array = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+
+            same(array.range(function (item) {
+                return true;
+            }), [ 0, 1 ]);
+
+            same(array.range(function (item) {
+                return item === 0 || item === 5;
+            }), [ 0, 1, 2, 3, 4, 5 ]);
+            same(array.range(function (item) {
+                return item === 5 || item === 0;
+            }), [ 0, 1, 2, 3, 4, 5 ]);
+
+            same(array.range(function (item) {
+                return item === 3;
+            }), []);
+            same(array.range(function (item) {
+                return item === 3 || item === 3;
+            }), []);
+            same(array.range(function (item) {
+                return item === 3 || item === 11;
+            }), []);
+            same(array.range(function (item) {
+                return item === 11 || item === 3;
+            }), []);
+            same(array.range(function (item) {
+                return item === 11;
+            }), []);
+            same(array.range(function (item) {
+                return false;
+            }), []);
+
+            same(array, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]);
+        });
+        test("(fn) range (strings)", function () {
+            expect(10);
+
+            var array = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" ];
+
+            same(array.range(function (item) {
+                return true;
+            }), [ "0", "1" ]);
+
+            same(array.range(function (item) {
+                return item === "0" || item === "5";
+            }), [ "0", "1", "2", "3", "4", "5" ]);
+            same(array.range(function (item) {
+                return item === "5" || item === "0";
+            }), [ "0", "1", "2", "3", "4", "5" ]);
+
+            same(array.range(function (item) {
+                return item === "3";
+            }), []);
+            same(array.range(function (item) {
+                return item === "3" || item === "3";
+            }), []);
+            same(array.range(function (item) {
+                return item === "3" || item === "11";
+            }), []);
+            same(array.range(function (item) {
+                return item === "11" || item === "3";
+            }), []);
+            same(array.range(function (item) {
+                return item === "11";
+            }), []);
+            same(array.range(function (item) {
+                return false;
+            }), []);
+
+            same(array, [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" ]);
+        });
+        test("(fn) range (mixed)", function () {
+            expect(10);
+
+            var array = [ 0, "1", 2, 3, "4", "5", "6", "7", "8", "9", "10" ];
+
+            same(array.range(function (item) {
+                return true;
+            }), [ 0, "1" ]);
+
+            same(array.range(function (item) {
+                return item === 0 || item === "5";
+            }), [ 0, "1", 2, 3, "4", "5" ]);
+            same(array.range(function (item) {
+                return item === "5" || item === 0;
+            }), [ 0, "1", 2, 3, "4", "5" ]);
+
+            same(array.range(function (item) {
+                return item === 3;
+            }), []);
+            same(array.range(function (item) {
+                return item === 3 || item === 3;
+            }), []);
+            same(array.range(function (item) {
+                return item === 3 || item === "11";
+            }), []);
+            same(array.range(function (item) {
+                return item === "11" || item === 3;
+            }), []);
+            same(array.range(function (item) {
+                return item === "11";
+            }), []);
+            same(array.range(function (item) {
+                return false;
+            }), []);
+
+            same(array, [ 0, "1", 2, 3, "4", "5", "6", "7", "8", "9", "10" ]);
+        });
+
+
+        module("Number.prototype");
+        test("(fn) toBase(16)", function () {
+            expect(4);
+
+            same((15).toBase(16), "f");
+            same((16).toBase(16), "10");
+            same((32).toBase(16), "20");
+            same((5000).toBase(16), "1388");
+        });
+
+        module("String.prototype");
+        test("(fn) fromBase(16)", function () {
+            expect(4);
+
+            same("f".fromBase(16), 15);
+            same("16".fromBase(16), 22);
+            same("32".fromBase(16), 50);
+            same("5000".fromBase(16), 20480);
+        });
+        test("(fn) escape", function () {
+            expect(14);
+
+            "\\.^$*+?{[]|()".split("").forEach(function (key) {
+                same(key.escape(), "\\" + key);
+            });
+
+            same("foo\\bar .qux + (corge)".escape(), "foo\\\\bar \\.qux \\+ \\(corge\\)");
+        });
+        test("(fn) unescape(\"%\")", function () {
+            expect(26);
+
+            "!*'();:@&=+$,/?#[]".split("").forEach(function (key) {
+                same(("%" + key.charCodeAt(0).toBase(16)).unescape("%"), key);
+            });
+
+            same("%20".unescape("%"), " ");
+            same("%00".unescape("%"), String.fromCharCode(0));
+            same("%3F".unescape("%"), String.fromCharCode(63));
+            same("%7F".unescape("%"), String.fromCharCode(127));
+            same("%80".unescape("%"), "%80");
+            same("%AF".unescape("%"), "%AF"); // ¯
+            same("%44F".unescape("%"), "DF"); // я
+            same("%44F36".unescape("%"), "DF36"); // 伶
+        });
+
+
+
+        function windowContainer(name, array) {
+            return {
+                tabIcon: {
+                    indexText: {
+                        value: name
+                    }
+                },
+                tabList: {
+                    children: array
+                }
+            };
+        }
+
+        var state = {
+            list: [
+                windowContainer("1", [
+                    { tab: {
+                        title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+                        url: "https://mail.google.com/mail/?shva=1#inbox"
+                    }},
+                    { tab: {
+                        title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+                        url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+                    }},
+                    { tab: {
+                        title: "Let me google that for you",
+                        url: "http://lmgtfy.com/"
+                    }}
+                ]),
+                windowContainer("2", [
+                    { tab: {
+                        title: "I HEART VIDEO",
+                        url: "http://iheartvideo.appspot.com/"
+                    }},
+                    { tab: {
+                        title: "YouTube - Google Chrome Extensions: Extension API Design",
+                        url: "http://www.youtube.com/watch?v=bmxr75CV36A"
+                    }}
+                ]),
+                windowContainer("3", [
+                    { tab: {
+                        title: "Video - MDC",
+                        url: "https://developer.mozilla.org/En/HTML/Element/Video"
+                    }},
+                    { tab: {
+                        title: "-moz-box-align - MDC",
+                        url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
+                    }}
+                ]),
+                windowContainer("Wikipedia", [
+                    { tab: {
+                        title: "x86-64 - Wikipedia, the free encyclopedia",
+                        url: "http://en.wikipedia.org/wiki/X86-64"
+                    }},
+                    { tab: {
+                        title: "Vegetarianism - Wikipedia, the free encyclopedia",
+                        url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
+                    }},
+                    { tab: {
+                        title: "x86-64 - Wikipedia, the free encyclopedia",
+                        url: "http://en.wikipedia.org/wiki/Vegetarian"
+                    }},
+                    { tab: {
+                        title: "Vegetarianism - Wikipedia, the free encyclopedia",
+                        url: "http://en.wikipedia.org/wiki/X86-64/"
+                    }}
+                ]),
+                windowContainer("Wine HQ", [
+                    { tab: {
+                        title: "3DDriverIssues - The Official Wine Wiki",
+                        url: "http://wiki.winehq.org/3DDriverIssues"
+                    }},
+                    { tab: {
+                        title: "256ColorMode - The Official Wine Wiki",
+                        url: "http://wiki.winehq.org/256ColorMode"
+                    }}
+                ]),
+                windowContainer("5", [
+                    { tab: {
+                        title: "The VideoLAN Forums • View topic - Save playlist using relative path",
+                        url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
+                    }}
+                ]),
+                windowContainer("10", [
+                    { tab: {
+                        title: "Arch Linux Forums / How to edit video files (mp4, avi ...) meta data (Title, author ...) ?",
+                        url: "http://bbs.archlinux.org/viewtopic.php?id=43048"
+                    }}
+                ])
+            ]
+        };
+
+        /*
+            result = [
+                { tab: {
+                    title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+                    url: "https://mail.google.com/mail/?shva=1#inbox"
+                }},
+                { tab: {
+                    title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+                    url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+                }},
+                { tab: {
+                    title: "Let me google that for you",
+                    url: "http://lmgtfy.com/"
+                }},
+                { tab: {
+                    title: "I HEART VIDEO",
+                    url: "http://iheartvideo.appspot.com/"
+                }},
+                { tab: {
+                    title: "YouTube - Google Chrome Extensions: Extension API Design",
+                    url: "http://www.youtube.com/watch?v=bmxr75CV36A"
+                }},
+                { tab: {
+                    title: "Video - MDC",
+                    url: "https://developer.mozilla.org/En/HTML/Element/Video"
+                }},
+                { tab: {
+                    title: "-moz-box-align - MDC",
+                    url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
+                }},
+                { tab: {
+                    title: "x86-64 - Wikipedia, the free encyclopedia",
+                    url: "http://en.wikipedia.org/wiki/X86-64"
+                }},
+                { tab: {
+                    title: "Vegetarianism - Wikipedia, the free encyclopedia",
+                    url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
+                }},
+                { tab: {
+                    title: "x86-64 - Wikipedia, the free encyclopedia",
+                    url: "http://en.wikipedia.org/wiki/Vegetarian"
+                }},
+                { tab: {
+                    title: "Vegetarianism - Wikipedia, the free encyclopedia",
+                    url: "http://en.wikipedia.org/wiki/X86-64/"
+                }},
+                { tab: {
+                    title: "3DDriverIssues - The Official Wine Wiki",
+                    url: "http://wiki.winehq.org/3DDriverIssues"
+                }},
+                { tab: {
+                    title: "256ColorMode - The Official Wine Wiki",
+                    url: "http://wiki.winehq.org/256ColorMode"
+                }},
+                { tab: {
+                    title: "The VideoLAN Forums • View topic - Save playlist using relative path",
+                    url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
+                }},
+                { tab: {
+                    title: "Arch Linux Forums / How to edit video files (mp4, avi ...) meta data (Title, author ...) ?",
+                    url: "http://bbs.archlinux.org/viewtopic.php?id=43048"
+                }}
+            ];
+        */
+
+
+        var array = [];
+
+        state.list.forEach(function (item) {
+            array = array.concat(item.tabList.children);
+        });
+
+        module("action.search");
+    </script>
+    <script src="action.search/default%20search.js"></script>
+    <script src="action.search/inurl:.js"></script>
+    <script src="action.search/intitle:.js"></script>
+    <script src="action.search/same:url.js"></script>
+    <script src="action.search/same:title.js"></script>
+    <script src="action.search/window:.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+@charset "UTF-8";
+@import url("testsuite.css");
+
+[hidden] {
+    display: none !important;
+}
+
+strong span {
+    color: rgb(30, 144, 255);
+    margin: 0px 5px;
+}
+#hidden {
+    width: 500px;
+}
+li[class] {
+    white-space: pre-wrap;
+}

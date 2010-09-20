@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <!--
+        Copyright © 2010 Paul Chapman
+
+        Copying and distribution of this file, with or without modification,
+        are permitted in any medium without royalty provided the copyright
+        notice and this notice are preserved.  This file is offered as-is,
+        without any warranty.
+    -->
+
+    <title>QUnit - Options</title>
+
+    <link href="lib/testcustom.css" type="text/css" rel="stylesheet" media="screen">
+    <script src="lib/jquery.min.js"></script>
+    <script src="lib/testrunner.js"></script>
+</head>
+<body>
+    <h1>QUnit - Options</h1>
+    <h2 id="userAgent"></h2>
+    <ol id="tests"></ol>
+    <div id="main"></div>
+
+    <script>
+        "use strict";
+        /*global window, localStorage */
+
+        var chrome = {
+            extension: {
+                getBackgroundPage: function () {
+                    return window;
+                }
+            }
+        };
+
+        window.confirm = function () {
+            return true;
+        };
+
+        delete localStorage["Options.config.base"];
+        delete localStorage["Options.config.user"];
+    </script>
+    <script src="http://tab-organizer.googlecode.com/hg/lib/Platform.js"></script>
+    <script src="http://tab-organizer.googlecode.com/hg/lib/Options.js"></script>
+    <script>
+        "use strict";
+        /*global equals, expect, module, ok, same, start, stop, test */
+        /*global Options, Event */
+
+        module("Options");
+        test("(fn) getObject", function () {
+            expect(18);
+
+            same(typeof Options.getObject(), "object");
+            same(typeof Options.getObject(undefined), "object");
+            same(typeof Options.getObject(""), "object");
+            same(typeof Options.getObject("{}"), "object");
+            same(typeof Options.getObject("null"), "object");
+            same(typeof Options.getObject("true"), "object");
+            same(typeof Options.getObject("false"), "object");
+            same(typeof Options.getObject("13814"), "object");
+            same(typeof Options.getObject("14dbrctpuh0 24P{"), "object");
+            same(typeof Options.getObject(null), "object");
+            same(typeof Options.getObject(true), "object");
+            same(typeof Options.getObject(false), "object");
+            same(typeof Options.getObject(13814), "object");
+            same(typeof Options.getObject({}), "object");
+
+            same(Options.getObject("[]"), []);
+            same(Options.getObject([]), []);
+            same(Options.getObject("[1,2,3,4,5,6,7]"), [ 1, 2, 3, 4, 5, 6, 7 ]);
+
+            same(Options.getObject('{"foo":"bar","bar":1234567}'), { foo: "bar", bar: 1234567 });
+        });
+
+
+        test("(fn) getDefault / setDefaults / isDefault", function () {
+            expect(36);
+
+            same(Options.get("default.foo"), undefined);
+            same(Options.get("default.bar"), undefined);
+            same(Options.getDefault("default.foo"), undefined);
+            same(Options.getDefault("default.bar"), undefined);
+            same(Options.isDefault("default.foo"), true);
+            same(Options.isDefault("default.bar"), true);
+
+            Options.setDefaults({
+                "default.foo": "hello",
+                "default.bar": "there"
+            });
+
+            same(Options.get("default.foo"), "hello");
+            same(Options.get("default.bar"), "there");
+            same(Options.getDefault("default.foo"), "hello");
+            same(Options.getDefault("default.bar"), "there");
+            same(Options.isDefault("default.foo"), true);
+            same(Options.isDefault("default.bar"), true);
+
+            Options.set("default.foo", "good");
+            Options.set("default.bar", "bye");
+
+            same(Options.get("default.foo"), "good");
+            same(Options.get("default.bar"), "bye");
+            same(Options.getDefault("default.foo"), "hello");
+            same(Options.getDefault("default.bar"), "there");
+            same(Options.isDefault("default.foo"), false);
+            same(Options.isDefault("default.bar"), false);
+
+            Options.set("default.foo", null);
+            Options.set("default.bar", null);
+
+            same(Options.get("default.foo"), "hello");
+            same(Options.get("default.bar"), "there");
+            same(Options.getDefault("default.foo"), "hello");
+            same(Options.getDefault("default.bar"), "there");
+            same(Options.isDefault("default.foo"), true);
+            same(Options.isDefault("default.bar"), true);
+
+            Options.set("default.foo", "good");
+            Options.set("default.bar", "bye");
+
+            same(Options.get("default.foo"), "good");
+            same(Options.get("default.bar"), "bye");
+            same(Options.getDefault("default.foo"), "hello");
+            same(Options.getDefault("default.bar"), "there");
+            same(Options.isDefault("default.foo"), false);
+            same(Options.isDefault("default.bar"), false);
+
+            Options.set("default.foo", "hello");
+            Options.set("default.bar", "there");
+
+            same(Options.get("default.foo"), "hello");
+            same(Options.get("default.bar"), "there");
+            same(Options.getDefault("default.foo"), "hello");
+            same(Options.getDefault("default.bar"), "there");
+            same(Options.isDefault("default.foo"), true);
+            same(Options.isDefault("default.bar"), true);
+        });
+
+
+        test("(fn) set / get", function () {
+            expect(56);
+
+            var changed, onchange;
+
+            same(Options.get("foo"), undefined);
+            same(Options.set("foo", "bar"), undefined);
+            same(Options.get("foo"), "bar");
+
+
+            var values = {
+                corge: true,
+                bar: true,
+                qux: true,
+                undefined: true
+            };
+
+            changed = 0;
+            onchange = function (event) {
+                same(event.name, "bar");
+                if (values[event.value]) {
+                    ok(true, "" + event.value);
+                } else {
+                    ok(false, "" + event.value);
+                }
+                changed += 1;
+            };
+            Options.addEventListener("change", onchange, true);
+
+            same(Options.get("bar"), undefined);
+            Options.set("bar", "corge");
+            same(Options.get("bar"), "corge");
+
+            Options.set("bar", "bar");
+            Options.set("bar", "bar");
+            Options.set("bar", "bar");
+            Options.set("bar", "qux");
+            Options.set("bar", "qux");
+            Options.set("bar", null);
+            Options.set("bar", "qux");
+            Options.set("bar", "qux");
+            Options.removeEventListener("change", onchange, true);
+            Options.set("bar", "qux");
+            Options.set("bar", "qux");
+            same(changed, 5);
+
+
+            changed = 0;
+//                removed = 0;
+
+            onchange = function () {
+                changed += 1;
+            };
+//            function onremove() {
+//                removed += 1;
+//            }
+            Options.addEventListener("change", onchange, true);
+//            Options.addEventListener("remove", onremove, true);
+
+            same(Options.get("foo"), "bar");
+            Options.set("foo", null);
+            same(Options.get("foo"), undefined);
+
+            same(Options.get("foo"), undefined);
+            Options.set("foo", "bar");
+            same(Options.get("foo"), "bar");
+
+            same(Options.get("foo"), "bar");
+            Options.set("foo", undefined);
+            same(Options.get("foo"), undefined);
+
+            Options.removeEventListener("change", onchange, true);
+//            Options.removeEventListener("remove", onremove, true);
+            same(changed, 3);
+//            same(removed, 2);
+
+
+            same(Options.get("foo"), undefined);
+            Options.set("foo", { message: "hello" });
+            same(Options.get("foo"), { message: "hello" });
+
+
+            Options.set("foo", "0", true);
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "0", false);
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "0", null);
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "0", {});
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "0", []);
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "0", "");
+            same(Options.get("foo"), 0);
+
+
+            Options.set("foo", "0");
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "");
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "       \t\n\t   \n\t ");
+            same(Options.get("foo"), 0);
+
+            Options.set("foo", "9001");
+            same(Options.get("foo"), 9001);
+
+            Options.set("foo", "9001.");
+            same(Options.get("foo"), 9001);
+
+            Options.set("foo", ".9001");
+            same(Options.get("foo"), 0.9001);
+
+            Options.set("foo", "10.1444");
+            same(Options.get("foo"), 10.1444);
+
+
+            Options.set("foo", "0", { verbatim: true });
+            same(Options.get("foo"), "0");
+
+            Options.set("foo", "", { verbatim: true });
+            same(Options.get("foo"), "");
+
+            Options.set("foo", "       \t\n\t   \n\t ", { verbatim: true });
+            same(Options.get("foo"), "       \t\n\t   \n\t ");
+
+            Options.set("foo", "9001", { verbatim: true });
+            same(Options.get("foo"), "9001");
+
+            Options.set("foo", "9001.", { verbatim: true });
+            same(Options.get("foo"), "9001.");
+
+            Options.set("foo", ".9001", { verbatim: true });
+            same(Options.get("foo"), ".9001");
+
+            Options.set("foo", "10.1444", { verbatim: true });
+            same(Options.get("foo"), "10.1444");
+
+            Options.set("foo", undefined, { verbatim: true });
+            same(Options.get("foo"), undefined);
+
+
+            Options.set("foo", "1a");
+            same(Options.get("foo"), "1a");
+
+            Options.set("foo", "9001,");
+            same(Options.get("foo"), "9001,");
+
+            Options.set("foo", "101,444");
+            same(Options.get("foo"), "101,444");
+
+            Options.set("foo", true);
+            same(Options.get("foo"), true);
+
+            Options.set("foo", false);
+            same(Options.get("foo"), false);
+
+
+            Options.set("foo", null);
+            same(Options.get("foo"), undefined);
+            Options.set("foo", null);
+            same(Options.get("foo"), undefined);
+
+            Options.set("foo", null, { verbatim: true });
+            same(Options.get("foo"), null);
+
+            Options.set("foo", null);
+            same(Options.get("foo"), undefined);
+            Options.set("foo", null);
+            same(Options.get("foo"), undefined);
+        });
+
+
+        test("(fn) snapshot", function () {
+            expect(1);
+
+        });
+
+
+        test("(fn) addEventListener", function () {
+            expect(24);
+
+            function testFunction(action) {
+                try {
+                    action();
+                } catch (e) {
+                    same(e instanceof TypeError, true);
+                    same(e.message, "The 2nd argument must be a function.");
+                }
+            }
+            testFunction(function () {
+                Options.addEventListener();
+            });
+            testFunction(function () {
+                Options.addEventListener("");
+            });
+            testFunction(function () {
+                Options.addEventListener("spameggs");
+            });
+            testFunction(function () {
+                Options.addEventListener("spameggs", {});
+            });
+            testFunction(function () {
+                Options.addEventListener("spameggs", true);
+            });
+            testFunction(function () {
+                Options.addEventListener("spameggs", null);
+            });
+
+
+            function testType(action) {
+                try {
+                    action();
+                } catch (e) {
+                    same(e instanceof TypeError, true);
+                    same(e.message, "The 3rd argument must be a boolean.");
+                }
+            }
+            testType(function () {
+                Options.addEventListener("spameggs", function () {});
+            });
+            testType(function () {
+                Options.addEventListener("spameggs", function () {}, "");
+            });
+            testType(function () {
+                Options.addEventListener("spameggs", function () {}, {});
+            });
+            testType(function () {
+                Options.addEventListener("spameggs", function () {}, function () {});
+            });
+            testType(function () {
+                Options.addEventListener("spameggs", function () {}, null);
+            });
+
+            function noop() {}
+
+            Options.addEventListener("spameggs", noop, true);
+            Options.addEventListener("spameggs", noop, false);
+
+            Options.removeEventListener("spameggs", noop, true);
+            Options.removeEventListener("spameggs", noop, false);
+
+
+            var state = {};
+
+            function test() {
+                same(state.hasRun, undefined);
+                state.hasRun = true;
+            }
+            Options.addEventListener("spameggs", test, true);
+            Options.addEventListener("spameggs", test, true);
+            Options.addEventListener("spameggs", test, true);
+            Options.addEventListener("spameggs", test, true);
+
+            Options.triggerEvent("spameggs");
+            Options.removeEventListener("spameggs", test, true);
+
+
+            Options.addEventListener("thisisatest", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                ok(true, "Event: " + event.type);
+            }, true);
+            Options.triggerEvent("thisisatest");
+        });
+
+
+        test("(fn) removeEventListener", function () {
+            expect(23);
+
+            function testFunction(action) {
+                try {
+                    action();
+                } catch (e) {
+                    same(e instanceof TypeError, true);
+                    same(e.message, "The 2nd argument must be a function.");
+                }
+            }
+            testFunction(function () {
+                Options.removeEventListener();
+            });
+            testFunction(function () {
+                Options.removeEventListener("");
+            });
+            testFunction(function () {
+                Options.removeEventListener("spameggs");
+            });
+            testFunction(function () {
+                Options.removeEventListener("spameggs", {});
+            });
+            testFunction(function () {
+                Options.removeEventListener("spameggs", true);
+            });
+            testFunction(function () {
+                Options.removeEventListener("spameggs", null);
+            });
+
+
+            function testType(action) {
+                try {
+                    action();
+                } catch (e) {
+                    same(e instanceof TypeError, true);
+                    same(e.message, "The 3rd argument must be a boolean.");
+                }
+            }
+            testType(function () {
+                Options.removeEventListener("spameggs", function () {});
+            });
+            testType(function () {
+                Options.removeEventListener("spameggs", function () {}, "");
+            });
+            testType(function () {
+                Options.removeEventListener("spameggs", function () {}, {});
+            });
+            testType(function () {
+                Options.removeEventListener("spameggs", function () {}, function () {});
+            });
+            testType(function () {
+                Options.removeEventListener("spameggs", function () {}, null);
+            });
+
+
+            Options.removeEventListener("spameggs", function () {}, true);
+            Options.removeEventListener("spameggs", function () {}, false);
+
+
+            var state = {};
+
+            Options.addEventListener("thisisatest", function (event) {
+                state.hasRun = true;
+            }, true);
+            Options.removeEventListener("thisisatest", function () {}, true);
+            Options.removeEventListener("thisisatest", function () {}, true);
+            Options.removeEventListener("thisisatest", function () {}, true);
+            Options.removeEventListener("thisisatest", function () {}, true);
+            Options.triggerEvent("thisisatest");
+            same(state.hasRun, true);
+        });
+
+
+        test("(fn) triggerEvent", function () {
+            expect(57);
+
+            var dontrun, state = {};
+
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(typeof event.preventDefault, "function");
+                event.preventDefault = null;
+                same(typeof event.preventDefault, "function");
+
+                same(typeof event.stopPropagation, "function");
+                event.stopPropagation = null;
+                same(typeof event.stopPropagation, "function");
+
+                same(this, Options);
+
+                try {
+                    same(event.foobarqux, undefined);
+                    event.foobarqux = "corgefoobar!";
+                    same(event.foobarqux, undefined);
+                } catch (e) {
+                    ok(true, e.toString());
+                }
+
+                same(event.target, Options);
+                event.target = null;
+                same(event.target, Options);
+
+                same(event.currentTarget, Options);
+                event.currentTarget = null;
+                same(event.currentTarget, Options);
+
+                same(event.type, "foobar");
+                event.type = null;
+                same(event.type, "foobar");
+
+                same(event.bubbles, true);
+                event.bubbles = null;
+                same(event.bubbles, true);
+
+                same(event.cancelable, true);
+                event.cancelable = null;
+                same(event.cancelable, true);
+
+                same(event.defaultPrevented, false);
+                event.defaultPrevented = null;
+                same(event.defaultPrevented, false);
+
+                same(event.quiddlyqux, "hellogoodbye");
+                event.quiddlyqux = null;
+                same(event.quiddlyqux, "hellogoodbye");
+
+
+                same(event.eventPhase, Event.CAPTURING_PHASE);
+                event.eventPhase = null;
+                same(event.eventPhase, Event.CAPTURING_PHASE);
+
+                same(state.capturePhase, undefined);
+                same(state.hasRun, undefined);
+
+                state.capturePhase = true;
+                state.hasRun = true;
+            }, true);
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, false);
+
+                same(event.defaultPrevented, false);
+                same(state.capturePhase, true);
+                same(event.eventPhase, Event.BUBBLING_PHASE);
+            }, false);
+
+            Options.triggerEvent("foobar", { quiddlyqux: "hellogoodbye" });
+            Options.triggerEvent("foobar", { quiddlyqux: "hellogoodbye" });
+
+
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.defaultPrevented, false);
+                event.preventDefault();
+                same(event.defaultPrevented, true);
+            }, true);
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, false);
+
+                same(event.defaultPrevented, true);
+            }, false);
+
+            Options.triggerEvent("foobar", { coooorge: "nou" });
+
+
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                event.stopPropagation();
+                ok(true, "Should run despite having called stopPropagation.");
+            }, true);
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.coooorge, "nou");
+                event.coooorge = null;
+                same(event.coooorge, "nou");
+
+                same(event.cancelable, true);
+                event.cancelable = null;
+                same(event.cancelable, true);
+
+                event.stopPropagation();
+                ok(true, "Should run despite having called stopPropagation.");
+            }, true);
+
+            dontrun = function (event) {
+                ok(false, "Should not run after calling stopPropagation!");
+            };
+            Options.addEventListener("foobar", dontrun, false);
+
+            Options.triggerEvent("foobar", { coooorge: "nou" });
+            Options.triggerEvent("foobar", { coooorge: "nou" });
+
+            Options.removeEventListener("foobar", dontrun, false);
+
+
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.cancelable, false);
+                event.cancelable = null;
+                same(event.cancelable, false);
+
+                same(event.defaultPrevented, false);
+                event.preventDefault();
+                same(event.defaultPrevented, false);
+
+                event.stopPropagation();
+                ok(true, "Should run normally.");
+            }, true);
+
+            dontrun = function (event) {
+                ok(false, "Should not run after calling stopPropagation!");
+            };
+            Options.addEventListener("foobar", dontrun, false);
+//            Options.addEventListener("foobar", function anon(event) {
+//                this.removeEventListener(event.type, anon, false);
+
+//                same(event.defaultPrevented, false);
+////                ok(true, "Should run despite having called stopPropagation.");
+//            }, false);
+
+            Options.triggerEvent("foobar", { cancelable: false });
+            Options.removeEventListener("foobar", dontrun, false);
+
+
+//            Options.addEventListener("foobar", function anon(event) {
+//                this.removeEventListener(event.type, anon, true);
+
+//                event.stopPropagation();
+//                ok(true, "Should run despite having called stopPropagation.");
+//            }, true);
+
+//            var dontrun = function (event) {
+//                ok(false, "Should not run after calling stopPropagation!");
+//            };
+//            Options.addEventListener("foobar", dontrun, false);
+
+//            Options.triggerEvent("foobar", { cancelable: false });
+//            Options.triggerEvent("foobar", { cancelable: false });
+
+//            Options.removeEventListener("foobar", dontrun, false);
+
+
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.bubbles, false);
+                event.bubbles = null;
+                same(event.bubbles, false);
+
+                ok(true, "Should run no matter what.");
+            }, true);
+
+            dontrun = function (event) {
+                ok(false, "Should not run, because the event doesn't bubble.");
+            };
+            Options.addEventListener("foobar", dontrun, false);
+
+            Options.triggerEvent("foobar", { bubbles: false });
+            Options.triggerEvent("foobar", { bubbles: false });
+
+            Options.removeEventListener("foobar", dontrun, false);
+
+
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.cancelable, true);
+                same(event.bubbles, true);
+            }, true);
+
+            Options.triggerEvent("foobar", {
+                cancelable: {},
+                bubbles: {}
+            });
+
+
+            Options.addEventListener("foobar", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.cancelable, true);
+                same(event.bubbles, true);
+            }, true);
+
+            Options.triggerEvent("foobar", {
+                cancelable: null,
+                bubbles: null
+            });
+
+
+            Options.addEventListener("quxcorge", function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.type, "quxcorge");
+                same(event.cancelable, true);
+                same(event.bubbles, true);
+                same(typeof event.preventDefault, "function");
+            }, true);
+
+            Options.triggerEvent("quxcorge");
+
+
+            Options.addEventListener(undefined, function anon(event) {
+                this.removeEventListener(event.type, anon, true);
+
+                same(event.type, undefined);
+                same(event.cancelable, true);
+                same(event.bubbles, true);
+                same(typeof event.preventDefault, "function");
+            }, true);
+
+            Options.triggerEvent();
+        });
+    </script>
+</body>
+</html>
