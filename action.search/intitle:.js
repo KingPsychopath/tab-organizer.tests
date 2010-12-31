@@ -5,7 +5,7 @@
 var result;
 
 test("intitle:", function () {
-    expect(4);
+    expect(5);
 
     same(action.search(array, "intitle:"), []);
 
@@ -60,6 +60,22 @@ test("intitle:", function () {
         }}
     ];
     same(action.search(array, "intitle:-"), result);
+
+    result = [
+        { tab: {
+            title: "-moz-box-align - MDC",
+            url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian"
+        }},
+    ];
+    same(action.search(array, 'intitle:"-"'), result);
 
     same(action.search(array, "intitle:#"), []);
 
@@ -235,6 +251,10 @@ test("intitle: (quotes)", function () {
         { tab: {
             title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
             url: "https://mail.google.com/mail/?shva=1#inbox"
+        }},
+        { tab: {
+            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
         }},
         { tab: {
             title: "YouTube - Google Chrome Extensions: Extension API Design",

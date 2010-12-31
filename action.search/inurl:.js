@@ -225,7 +225,7 @@ test("inurl: (-)", function () {
 
 
 test("inurl: (quotes)", function () {
-    expect(1);
+    expect(2);
 
     result = [
         { tab: {
@@ -236,10 +236,18 @@ test("inurl: (quotes)", function () {
             title: "Vegetarianism - Wikipedia, the free encyclopedia",
             url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
         }},
-        { tab: {
-            title: "x86-64 - Wikipedia, the free encyclopedia",
-            url: "http://en.wikipedia.org/wiki/Vegetarian"
-        }}
     ];
     same(action.search(array, 'inurl:"#"'), result);
+
+    result = [
+        { tab: {
+            title: "3DDriverIssues - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/3DDriverIssues"
+        }},
+        { tab: {
+            title: "256ColorMode - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/256ColorMode"
+        }},
+    ];
+    same(action.search(array, 'inurl:"winehq"'), result);
 });

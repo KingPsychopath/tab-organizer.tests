@@ -2,8 +2,10 @@
 /*global equals, expect, module, ok, same, start, stop, test */
 /*global action, array */
 
+var result;
+
 test("same:url", function () {
-    expect(4);
+    expect(5);
 
     same(action.search(array, "same:url"), [
         { tab: {
@@ -30,6 +32,21 @@ test("same:url", function () {
             url: "http://en.wikipedia.org/wiki/X86-64"
         }},
         { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64/"
+        }}
+    ]);
+
+    same(action.search(array, "inurl:x86 same:url"), [
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64"
+        }},
+        { tab: {
             title: "Vegetarianism - Wikipedia, the free encyclopedia",
             url: "http://en.wikipedia.org/wiki/X86-64/"
         }}
@@ -43,14 +60,19 @@ test("same:url", function () {
 test("same:url (AND)", function () {
     expect(1);
 
-    same(action.search(array, "# same:url"), []);
+    same(action.search(array, "# same:url"), [
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
+        }},
+    ]);
 });
 
 
 test("same:url (-)", function () {
-    expect(1);
+    expect(2);
 
-    same(action.search(array, "-same:url"), [
+    result = [
         { tab: {
             title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
             url: "https://mail.google.com/mail/?shva=1#inbox"
@@ -95,5 +117,7 @@ test("same:url (-)", function () {
             title: "Arch Linux Forums / How to edit video files (mp4, avi ...) meta data (Title, author ...) ?",
             url: "http://bbs.archlinux.org/viewtopic.php?id=43048"
         }}
-    ]);
+    ];
+    same(action.search(array, "-same:url"), result);
+    same(action.search(array, "same:-url"), result);
 });

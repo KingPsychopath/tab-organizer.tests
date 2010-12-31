@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <!--
+        Copyright © 2010 Paul Chapman
+
+        Copying and distribution of this file, with or without modification,
+        are permitted in any medium without royalty provided the copyright
+        notice and this notice are preserved.  This file is offered as-is,
+        without any warranty.
+    -->
+
+    <title>QUnit - Options</title>
+
+    <link href="lib/testcustom.css" type="text/css" rel="stylesheet" media="screen">
+    <script src="lib/jquery.min.js"></script>
+    <script src="lib/testrunner.js"></script>
+</head>
+<body>
+    <h1>QUnit - Options</h1>
+    <h2 id="userAgent"></h2>
+    <ol id="tests"></ol>
+    <div id="main"></div>
+
+    <script src="file:///mnt/pauan/KAE/parser/parser.js"></script>
+    <script>
+        "use strict";
+        /*global equals, expect, module, ok, same, start, stop, test */
+        /*global parser */
+
+        module("parser");
+        test("", function () {
+            expect(11);
+
+            parser.literal.nud = function () {
+                //console.warn(parser.expression());
+                //return this.value;
+                return "(VALUE " + this.value + ")";
+                /*if (isNaN(+this.value)) {
+
+                } else {
+                    return this.value;
+                }*/
+            };
+
+            parser.braces({ open: "(", close: ")" });
+            //parser.braces("\"", "\"");
+
+            parser.quotes({ token: '"', match: /(")((?:[^"\n\\]|\\[\s\S])*)(")/,
+                output: function (right) {
+                    return "(QUOTE " + right + ")";
+                }
+            });
+
+            parser.suffix({ token: "*",
+                output: function (left) {
+                    return "(EXPAND " + left + ")";
+                }
+            });
+
+/*
+             NOT > AND > OR > 0
+
+             0 < OR < AND
+             0 < OR <= NOT
+             0 < OR <= window < , < RANGE
+
+
+            , < RANGE
+            , <= NOT
+            window < ,
+            AND <= window
+            OR < AND
+            0 < OR
+
+
+            OR <= NOT
+*/
+
+            parser.infix({ priority: 50, token: "-",
+                output: function (left, right) {
+                    return "(RANGE " + left + " " + right + ")";
+                }
+            });
+
+            parser.prefix({ priority: 40, token: "-",
+                output: function (right) {
+                    return "(NOT " + right + ")";
+                }
+            });
+
+            parser.infix({ priority: 40, token: ",",
+                output: function (left, right) {
+                    return "(, " + left + " " + right + ")";
+                }
+            });
+
+            parser.prefix({ priority: 20, token: "window:",
+                output: function (right) {
+                    return "(" + this.name + " " + right + ")";
+                }
+            });//.nud = ;
+
+            parser.prefix({ priority: 20, token: "same:",
+                output: function (right) {
+                    return "(" + this.name + " " + right + ")";
+                }
+            });
+
+            /*parser.prefix({ priority: 20, token: "count:", arity: 2,
+                output: function (right) {
+                    return "(" + this.name + " " + right + ")";
+                }
+            });*/
+
+            /*parser.any({ priority: 0,
+                output: function (right) {
+                    console.warn(right);
+                    return "(TABS " + right + ")";
+                }
+            });*/
+
+            parser.infix({ priority: 20, token: " ", match: /( ) */,
+                output: function (left, right) {
+                    return "(AND (TABS " + left + ") (TABS " + right + "))";
+                }
+            });
+
+            parser.infix({ priority: 10, token: " OR ", match: / *( OR ) */,
+                output: function (left, right) {
+                    return "(OR (TABS " + left + ") (TABS " + right + "))";
+                }
+            });
+
+
+            var i, o;
+
+            i = "foo* OR bar qux";
+            o = "(OR (TABS (EXPAND foo)) (AND (TABS (VALUE bar)) (TABS (VALUE qux))))";
+            same(parser.output(i), o);
+
+            i = "count:5 foo OR bar qux";
+            o = "(OR (TABS (count: (VALUE 5) (TABS (VALUE foo)))) (AND (TABS (VALUE bar)) (TABS (VALUE qux))))";
+            same(parser.output(i), o);
+
+            i = "count:5 (foo OR bar qux)";
+            o = "(TABS (count: (VALUE 5) (OR (TABS (VALUE foo)) (AND (TABS (VALUE bar)) (TABS (VALUE qux))))))";
+            same(parser.output(i), o);
+
+            i = "foo OR bar OR qux OR corge";
+            o = "(OR (OR (OR (TABS (VALUE foo)) (TABS (VALUE bar))) (TABS (VALUE qux))) (TABS (VALUE corge)))";
+            same(parser.output(i), o);
+
+            i = "-";
+            o = "(NOT (TABS undefined))";
+            same(parser.output(i), o);
+
+            i = "(window:5,-,-,-,,--,) OR window:5,,";
+            o = "(OR (TABS (window: (, (, (, (, (, (, (VALUE 5) (RANGE undefined undefined)) (RANGE undefined undefined)) (RANGE undefined undefined))) (RANGE (RANGE undefined undefined) undefined)) undefined))) (TABS (window: (, (VALUE 5) undefined))))";
+            same(parser.output(i), o);
+
+            i = "window:5-, OR window:5,,,,";
+            //i = "window:5, OR window:5,-";
+            o = "";
+            same(parser.output(i), o);
+
+            i = "(window:5,) OR window:5,,";
+            //i = "window:5, OR window:5,-";
+            o = "(OR (TABS (window: (, (VALUE 5) undefined))) (TABS (window: (, (VALUE 5) undefined))))";
+            same(parser.output(i), o);
+
+            i = "foo      OR      bar      qux";
+            o = "(OR (TABS (VALUE foo)) (AND (TABS (VALUE bar)) (TABS (VALUE qux))))";
+            same(parser.output(i), o);
+
+            i = '"same:url" fOo BaR QUx';
+            o = '(AND (AND (AND (TABS (QUOTE same:url)) (TABS (VALUE fOo))) (TABS (VALUE BaR))) (TABS (VALUE QUx)))';
+            same(parser.output(i), o);
+
+            i = "-window:foo,5-5 OR bar qux";
+            o = "(OR (NOT (TABS (window: (, (VALUE foo) (RANGE (VALUE 5) (VALUE 5)))))) (AND (TABS (VALUE bar)) (TABS (VALUE qux))))";
+            same(parser.output(i), o);
+
+            i = "-window:-5,106,1 foo OR (bar OR qux) corge";
+            o = "(OR (AND (NOT (TABS (window: (, (, (NOT (VALUE 5)) (VALUE 106)) (VALUE 1))))) (TABS (VALUE foo))) (AND (OR (TABS (VALUE bar)) (TABS (VALUE qux))) (TABS (VALUE corge))))";
+            same(parser.output(i), o);
+
+            i = "-window:-5,10-6,1 foo OR (bar OR qux) corge";
+            o = "(OR (AND (NOT (TABS (window: (, (, (NOT (VALUE 5)) (RANGE (VALUE 10) (VALUE 6))) (VALUE 1))))) (TABS (VALUE foo))) (AND (OR (TABS (VALUE bar)) (TABS (VALUE qux))) (TABS (VALUE corge))))";
+            same(parser.output(i), o);
+
+            i = 'same:url,bar (-window:"focused foo",10-6,1,foo OR (bar OR qux)) corge';
+            o = "(AND (AND (same: (, (VALUE url) (VALUE bar))) (OR (NOT (window: (, (, (, (QUOTE focused foo) (RANGE (VALUE 10) (VALUE 6))) (VALUE 1)) (TABS (VALUE foo))))) (OR (TABS (VALUE bar)) (TABS (VALUE qux))))) (TABS (VALUE corge)))";
+            same(parser.output(i), o);
+        });
+    </script>
+</body>
+</html>

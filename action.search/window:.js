@@ -295,7 +295,16 @@ test("window: (quotes)", function () {
         }}
     ]);
 
-    same(action.search(array, 'window:"Wine"'), []);
+    same(action.search(array, 'window:"Wine"'), [
+        { tab: {
+            title: "3DDriverIssues - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/3DDriverIssues"
+        }},
+        { tab: {
+            title: "256ColorMode - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/256ColorMode"
+        }}
+    ]);
     same(action.search(array, 'window:"Wine HQ"'), [
         { tab: {
             title: "3DDriverIssues - The Official Wine Wiki",
@@ -409,35 +418,275 @@ test("window: (quotes)", function () {
             title: "The VideoLAN Forums • View topic - Save playlist using relative path",
             url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
         }},
-        { tab: {
-            title: "Arch Linux Forums / How to edit video files (mp4, avi ...) meta data (Title, author ...) ?",
-            url: "http://bbs.archlinux.org/viewtopic.php?id=43048"
-        }}
     ]);
 });
 
 
-test("window: (dash)", function () {
-    expect(19);
+test("window: (focused)", function () {
+    expect(14);
 
-    same(action.search(array, "window:-"), []);
-    same(action.search(array, "window:-5"), []);
-
-    result = [
-        { tab: {
-            title: "The VideoLAN Forums • View topic - Save playlist using relative path",
-            url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
-        }}
-    ];
-    same(action.search(array, "window:5-"), result);
-    same(action.search(array, "window:5- "), result);
-
-    same(action.search(array, "window:2- video"), [
+    same(action.search(array, "window:focused"), [
         { tab: {
             title: "I HEART VIDEO",
             url: "http://iheartvideo.appspot.com/"
+        }},
+        { tab: {
+            title: "YouTube - Google Chrome Extensions: Extension API Design",
+            url: "http://www.youtube.com/watch?v=bmxr75CV36A"
         }}
     ]);
+
+    result = [];
+    same(action.search(array, 'window:"focused"'), result);
+    same(action.search(array, 'window:foc'), result);
+    same(action.search(array, 'window:r/focused/'), result);
+    same(action.search(array, 'window:r/focused/i'), result);
+
+    same(action.search(array, 'window:"1",focused'), [
+        { tab: {
+            title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+            url: "https://mail.google.com/mail/?shva=1#inbox"
+        }},
+        { tab: {
+            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+        }},
+        { tab: {
+            title: "Let me google that for you",
+            url: "http://lmgtfy.com/"
+        }},
+        { tab: {
+            title: "I HEART VIDEO",
+            url: "http://iheartvideo.appspot.com/"
+        }},
+        { tab: {
+            title: "YouTube - Google Chrome Extensions: Extension API Design",
+            url: "http://www.youtube.com/watch?v=bmxr75CV36A"
+        }},
+    ]);
+
+    result = [
+        { tab: {
+            title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+            url: "https://mail.google.com/mail/?shva=1#inbox"
+        }},
+        { tab: {
+            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+        }},
+        { tab: {
+            title: "Let me google that for you",
+            url: "http://lmgtfy.com/"
+        }},
+        { tab: {
+            title: "Video - MDC",
+            url: "https://developer.mozilla.org/En/HTML/Element/Video"
+        }},
+        { tab: {
+            title: "-moz-box-align - MDC",
+            url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64/"
+        }},
+        { tab: {
+            title: "3DDriverIssues - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/3DDriverIssues"
+        }},
+        { tab: {
+            title: "256ColorMode - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/256ColorMode"
+        }},
+        { tab: {
+            title: "The VideoLAN Forums • View topic - Save playlist using relative path",
+            url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
+        }},
+        { tab: {
+            title: "Arch Linux Forums / How to edit video files (mp4, avi ...) meta data (Title, author ...) ?",
+            url: "http://bbs.archlinux.org/viewtopic.php?id=43048"
+        }},
+    ];
+    same(action.search(array, 'window:-2'), result);
+    same(action.search(array, "window:-focused"), result);
+    same(action.search(array, 'window:"1",-focused'), result);
+    same(action.search(array, 'window:"1" | window:-focused'), result);
+
+    result = [
+        { tab: {
+            title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+            url: "https://mail.google.com/mail/?shva=1#inbox"
+        }},
+        { tab: {
+            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+        }},
+        { tab: {
+            title: "Let me google that for you",
+            url: "http://lmgtfy.com/"
+        }},
+        { tab: {
+            title: "I HEART VIDEO",
+            url: "http://iheartvideo.appspot.com/"
+        }},
+        { tab: {
+            title: "YouTube - Google Chrome Extensions: Extension API Design",
+            url: "http://www.youtube.com/watch?v=bmxr75CV36A"
+        }},
+        { tab: {
+            title: "Video - MDC",
+            url: "https://developer.mozilla.org/En/HTML/Element/Video"
+        }},
+        { tab: {
+            title: "-moz-box-align - MDC",
+            url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64/"
+        }},
+    ];
+    same(action.search(array, 'window:"1",focused-wik'), result);
+    same(action.search(array, 'window:wik-focused,"1"'), result);
+    same(action.search(array, 'window:"1"-wik,focused'), result);
+
+    result = [
+        { tab: {
+            title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+            url: "https://mail.google.com/mail/?shva=1#inbox"
+        }},
+        { tab: {
+            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+        }},
+        { tab: {
+            title: "Let me google that for you",
+            url: "http://lmgtfy.com/"
+        }},
+        { tab: {
+            title: "I HEART VIDEO",
+            url: "http://iheartvideo.appspot.com/"
+        }},
+        { tab: {
+            title: "YouTube - Google Chrome Extensions: Extension API Design",
+            url: "http://www.youtube.com/watch?v=bmxr75CV36A"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64/"
+        }},
+    ];
+    same(action.search(array, 'window:"1"-focused,wik'), result);
+});
+
+
+test("window: (dash)", function () {
+    expect(20);
+
+    same(action.search(array, "window:-"), []);
+
+    result = [
+        { tab: {
+            title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+            url: "https://mail.google.com/mail/?shva=1#inbox"
+        }},
+        { tab: {
+            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+        }},
+        { tab: {
+            title: "Let me google that for you",
+            url: "http://lmgtfy.com/"
+        }},
+        { tab: {
+            title: "I HEART VIDEO",
+            url: "http://iheartvideo.appspot.com/"
+        }},
+        { tab: {
+            title: "YouTube - Google Chrome Extensions: Extension API Design",
+            url: "http://www.youtube.com/watch?v=bmxr75CV36A"
+        }},
+        { tab: {
+            title: "Video - MDC",
+            url: "https://developer.mozilla.org/En/HTML/Element/Video"
+        }},
+        { tab: {
+            title: "-moz-box-align - MDC",
+            url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian#Nutrition"
+        }},
+        { tab: {
+            title: "x86-64 - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/Vegetarian"
+        }},
+        { tab: {
+            title: "Vegetarianism - Wikipedia, the free encyclopedia",
+            url: "http://en.wikipedia.org/wiki/X86-64/"
+        }},
+        { tab: {
+            title: "3DDriverIssues - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/3DDriverIssues"
+        }},
+        { tab: {
+            title: "256ColorMode - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/256ColorMode"
+        }},
+        { tab: {
+            title: "Arch Linux Forums / How to edit video files (mp4, avi ...) meta data (Title, author ...) ?",
+            url: "http://bbs.archlinux.org/viewtopic.php?id=43048"
+        }},
+    ];
+    same(action.search(array, "window:-5"), result);
+    same(action.search(array, "-window:5"), result);
+
+    result = [];
+    same(action.search(array, "window:5-"), result);
+    same(action.search(array, "window:5- "), result);
+
+    same(action.search(array, "window:2- video"), []);
 
     same(action.search(array, "window:5-5"), []);
     same(action.search(array, "window:10-10"), []);
@@ -571,7 +820,7 @@ test("window: (dash)", function () {
 
 
 test("window: (comma)", function () {
-    expect(7);
+    expect(10);
 
     result = [
         { tab: {
@@ -587,12 +836,27 @@ test("window: (comma)", function () {
     same(action.search(array, "window:win,"), result);
     same(action.search(array, "window:win, "), result);
 
-    same(action.search(array, "window:win, 3d"), [
+    same(action.search(array, "window:win,3d"), [
+        { tab: {
+            title: "3DDriverIssues - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/3DDriverIssues"
+        }},
+        { tab: {
+            title: "256ColorMode - The Official Wine Wiki",
+            url: "http://wiki.winehq.org/256ColorMode"
+        }}
+    ]);
+
+    same(action.search(array, 'window:"win," 3d'), []);
+
+    result = [
         { tab: {
             title: "3DDriverIssues - The Official Wine Wiki",
             url: "http://wiki.winehq.org/3DDriverIssues"
         }}
-    ]);
+    ];
+    same(action.search(array, "window:win, 3d"), result);
+    same(action.search(array, "3d window:win,"), result);
 
     same(action.search(array, "window:WiK,WIn"), [
         { tab: {
@@ -623,6 +887,18 @@ test("window: (comma)", function () {
 
     same(action.search(array, "window:WiK,WIn,5,1"), [
         { tab: {
+            title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
+            url: "https://mail.google.com/mail/?shva=1#inbox"
+        }},
+        { tab: {
+            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
+            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
+        }},
+        { tab: {
+            title: "Let me google that for you",
+            url: "http://lmgtfy.com/"
+        }},
+        { tab: {
             title: "x86-64 - Wikipedia, the free encyclopedia",
             url: "http://en.wikipedia.org/wiki/X86-64"
         }},
@@ -651,18 +927,6 @@ test("window: (comma)", function () {
             url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
         }},
         { tab: {
-            title: "Gmail - Inbox (3) - pcxunlimited@gmail.com",
-            url: "https://mail.google.com/mail/?shva=1#inbox"
-        }},
-        { tab: {
-            title: "Issue 1316 - chromium - Scroll Wheel to switch tabs? - Project Hosting on Google Code",
-            url: "http://code.google.com/p/chromium/issues/detail?id=1316"
-        }},
-        { tab: {
-            title: "Let me google that for you",
-            url: "http://lmgtfy.com/"
-        }},
-        { tab: {
             title: "Arch Linux Forums / How to edit video files (mp4, avi ...) meta data (Title, author ...) ?",
             url: "http://bbs.archlinux.org/viewtopic.php?id=43048"
         }}
@@ -677,22 +941,6 @@ test("window: (comma)", function () {
             title: "256ColorMode - The Official Wine Wiki",
             url: "http://wiki.winehq.org/256ColorMode"
         }},
-        { tab: {
-            title: "3DDriverIssues - The Official Wine Wiki",
-            url: "http://wiki.winehq.org/3DDriverIssues"
-        }},
-        { tab: {
-            title: "256ColorMode - The Official Wine Wiki",
-            url: "http://wiki.winehq.org/256ColorMode"
-        }},
-        { tab: {
-            title: "3DDriverIssues - The Official Wine Wiki",
-            url: "http://wiki.winehq.org/3DDriverIssues"
-        }},
-        { tab: {
-            title: "256ColorMode - The Official Wine Wiki",
-            url: "http://wiki.winehq.org/256ColorMode"
-        }}
     ]);
 });
 
@@ -725,10 +973,6 @@ test("window: (both)", function () {
 
     same(action.search(array, "window:5,2-3"), [
         { tab: {
-            title: "The VideoLAN Forums • View topic - Save playlist using relative path",
-            url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
-        }},
-        { tab: {
             title: "I HEART VIDEO",
             url: "http://iheartvideo.appspot.com/"
         }},
@@ -743,7 +987,11 @@ test("window: (both)", function () {
         { tab: {
             title: "-moz-box-align - MDC",
             url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
-        }}
+        }},
+        { tab: {
+            title: "The VideoLAN Forums • View topic - Save playlist using relative path",
+            url: "http://forum.videolan.org/viewtopic.php?f=7&t=4658"
+        }},
     ]);
 
     same(action.search(array, "window:2-3,wine"), [
@@ -789,22 +1037,6 @@ test("window: (both)", function () {
         { tab: {
             title: "-moz-box-align - MDC",
             url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
-        }},
-        { tab: {
-            title: "I HEART VIDEO",
-            url: "http://iheartvideo.appspot.com/"
-        }},
-        { tab: {
-            title: "YouTube - Google Chrome Extensions: Extension API Design",
-            url: "http://www.youtube.com/watch?v=bmxr75CV36A"
-        }},
-        { tab: {
-            title: "Video - MDC",
-            url: "https://developer.mozilla.org/En/HTML/Element/Video"
-        }},
-        { tab: {
-            title: "-moz-box-align - MDC",
-            url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
         }}
     ];
     same(action.search(array, "window:2-3,2-3"), result);
@@ -827,13 +1059,5 @@ test("window: (both)", function () {
             title: "-moz-box-align - MDC",
             url: "https://developer.mozilla.org/en/CSS/-moz-box-align"
         }},
-        { tab: {
-            title: "I HEART VIDEO",
-            url: "http://iheartvideo.appspot.com/"
-        }},
-        { tab: {
-            title: "YouTube - Google Chrome Extensions: Extension API Design",
-            url: "http://www.youtube.com/watch?v=bmxr75CV36A"
-        }}
     ]);
 });
