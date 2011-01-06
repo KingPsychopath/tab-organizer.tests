@@ -42,7 +42,7 @@
         delete localStorage["Options.config.base"];
         delete localStorage["Options.config.user"];
     </script>
-    <script src="http://tab-organizer.googlecode.com/hg/lib/Platform.js"></script>
+    <!--<script src="http://tab-organizer.googlecode.com/hg/lib/Platform.js"></script>-->
     <script src="http://tab-organizer.googlecode.com/hg/lib/Options.js"></script>
     <script>
         "use strict";
@@ -167,7 +167,7 @@
                 }
                 changed += 1;
             };
-            Options.event.addListener("change", onchange);
+            Options.event.on("change", onchange);
 
             same(Options.get("bar"), undefined);
             Options.set("bar", "corge");
@@ -181,7 +181,7 @@
             Options.set("bar", null);
             Options.set("bar", "qux");
             Options.set("bar", "qux");
-            Options.event.removeListener("change", onchange);
+            Options.event.remove("change", onchange);
             Options.set("bar", "qux");
             Options.set("bar", "qux");
             same(changed, 5);
@@ -196,8 +196,8 @@
 //            function onremove() {
 //                removed += 1;
 //            }
-            Options.event.addListener("change", onchange);
-//            Options.event.addListener("remove", onremove);
+            Options.event.on("change", onchange);
+//            Options.event.on("remove", onremove);
 
             same(Options.get("foo"), "bar");
             Options.set("foo", null);
@@ -211,8 +211,8 @@
             Options.set("foo", undefined);
             same(Options.get("foo"), undefined);
 
-            Options.event.removeListener("change", onchange);
-//            Options.event.removeListener("remove", onremove);
+            Options.event.remove("change", onchange);
+//            Options.event.remove("remove", onremove);
             same(changed, 3);
 //            same(removed, 2);
 
@@ -325,7 +325,7 @@
         });
 
 
-        test("(fn) addEventListener", function () {
+        test("(fn) on", function () {
             expect(24);
 
             function testFunction(action) {
@@ -337,22 +337,22 @@
                 }
             }
             testFunction(function () {
-                Options.event.addListener();
+                Options.event.on();
             });
             testFunction(function () {
-                Options.event.addListener("");
+                Options.event.on("");
             });
             testFunction(function () {
-                Options.event.addListener("spameggs");
+                Options.event.on("spameggs");
             });
             testFunction(function () {
-                Options.event.addListener("spameggs", {});
+                Options.event.on("spameggs", {});
             });
             testFunction(function () {
-                Options.event.addListener("spameggs", true);
+                Options.event.on("spameggs", true);
             });
             testFunction(function () {
-                Options.event.addListener("spameggs", null);
+                Options.event.on("spameggs", null);
             });
 
 
@@ -365,28 +365,28 @@
                 }
             }
             testType(function () {
-                Options.event.addListener("spameggs", function () {});
+                Options.event.on("spameggs", function () {});
             });
             testType(function () {
-                Options.event.addListener("spameggs", function () {}, "");
+                Options.event.on("spameggs", function () {}, "");
             });
             testType(function () {
-                Options.event.addListener("spameggs", function () {}, {});
+                Options.event.on("spameggs", function () {}, {});
             });
             testType(function () {
-                Options.event.addListener("spameggs", function () {}, function () {});
+                Options.event.on("spameggs", function () {}, function () {});
             });
             testType(function () {
-                Options.event.addListener("spameggs", function () {}, null);
+                Options.event.on("spameggs", function () {}, null);
             });
 
             function noop() {}
 
-            Options.event.addListener("spameggs", noop);
-            Options.event.addListener("spameggs", noop, false);
+            Options.event.on("spameggs", noop);
+            Options.event.on("spameggs", noop, false);
 
-            Options.event.removeListener("spameggs", noop);
-            Options.event.removeListener("spameggs", noop, false);
+            Options.event.remove("spameggs", noop);
+            Options.event.remove("spameggs", noop, false);
 
 
             var state = {};
@@ -395,16 +395,16 @@
                 same(state.hasRun, undefined);
                 state.hasRun = true;
             }
-            Options.event.addListener("spameggs", test);
-            Options.event.addListener("spameggs", test);
-            Options.event.addListener("spameggs", test);
-            Options.event.addListener("spameggs", test);
+            Options.event.on("spameggs", test);
+            Options.event.on("spameggs", test);
+            Options.event.on("spameggs", test);
+            Options.event.on("spameggs", test);
 
             Options.event.trigger("spameggs");
-            Options.event.removeListener("spameggs", test);
+            Options.event.remove("spameggs", test);
 
 
-            Options.event.addListener("thisisatest", function anon(event) {
+            Options.event.on("thisisatest", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 ok(true, "Event: " + event.type);
@@ -413,7 +413,7 @@
         });
 
 
-        test("(fn) removeEventListener", function () {
+        test("(fn) remove", function () {
             expect(23);
 
             function testFunction(action) {
@@ -425,22 +425,22 @@
                 }
             }
             testFunction(function () {
-                Options.event.removeListener();
+                Options.event.remove();
             });
             testFunction(function () {
-                Options.event.removeListener("");
+                Options.event.remove("");
             });
             testFunction(function () {
-                Options.event.removeListener("spameggs");
+                Options.event.remove("spameggs");
             });
             testFunction(function () {
-                Options.event.removeListener("spameggs", {});
+                Options.event.remove("spameggs", {});
             });
             testFunction(function () {
-                Options.event.removeListener("spameggs", true);
+                Options.event.remove("spameggs", true);
             });
             testFunction(function () {
-                Options.event.removeListener("spameggs", null);
+                Options.event.remove("spameggs", null);
             });
 
 
@@ -453,35 +453,35 @@
                 }
             }
             testType(function () {
-                Options.event.removeListener("spameggs", function () {});
+                Options.event.remove("spameggs", function () {});
             });
             testType(function () {
-                Options.event.removeListener("spameggs", function () {}, "");
+                Options.event.remove("spameggs", function () {}, "");
             });
             testType(function () {
-                Options.event.removeListener("spameggs", function () {}, {});
+                Options.event.remove("spameggs", function () {}, {});
             });
             testType(function () {
-                Options.event.removeListener("spameggs", function () {}, function () {});
+                Options.event.remove("spameggs", function () {}, function () {});
             });
             testType(function () {
-                Options.event.removeListener("spameggs", function () {}, null);
+                Options.event.remove("spameggs", function () {}, null);
             });
 
 
-            Options.event.removeListener("spameggs", function () {});
-            Options.event.removeListener("spameggs", function () {}, false);
+            Options.event.remove("spameggs", function () {});
+            Options.event.remove("spameggs", function () {}, false);
 
 
             var state = {};
 
-            Options.event.addListener("thisisatest", function (event) {
+            Options.event.on("thisisatest", function (event) {
                 state.hasRun = true;
             });
-            Options.event.removeListener("thisisatest", function () {});
-            Options.event.removeListener("thisisatest", function () {});
-            Options.event.removeListener("thisisatest", function () {});
-            Options.event.removeListener("thisisatest", function () {});
+            Options.event.remove("thisisatest", function () {});
+            Options.event.remove("thisisatest", function () {});
+            Options.event.remove("thisisatest", function () {});
+            Options.event.remove("thisisatest", function () {});
             Options.event.trigger("thisisatest");
             same(state.hasRun, true);
         });
@@ -492,7 +492,7 @@
 
             var dontrun, state = {};
 
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(typeof event.preventDefault, "function");
@@ -552,7 +552,7 @@
                 state.capturePhase = true;
                 state.hasRun = true;
             });
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, false);
 
                 same(event.defaultPrevented, false);
@@ -564,14 +564,14 @@
             Options.event.trigger("foobar", { quiddlyqux: "hellogoodbye" });
 
 
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.defaultPrevented, false);
                 event.preventDefault();
                 same(event.defaultPrevented, true);
             });
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, false);
 
                 same(event.defaultPrevented, true);
@@ -580,13 +580,13 @@
             Options.event.trigger("foobar", { coooorge: "nou" });
 
 
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 event.stopPropagation();
                 ok(true, "Should run despite having called stopPropagation.");
             });
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.coooorge, "nou");
@@ -604,15 +604,15 @@
             dontrun = function (event) {
                 ok(false, "Should not run after calling stopPropagation!");
             };
-            Options.event.addListener("foobar", dontrun, false);
+            Options.event.on("foobar", dontrun, false);
 
             Options.event.trigger("foobar", { coooorge: "nou" });
             Options.event.trigger("foobar", { coooorge: "nou" });
 
-            Options.event.removeListener("foobar", dontrun, false);
+            Options.event.remove("foobar", dontrun, false);
 
 
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.cancelable, false);
@@ -630,8 +630,8 @@
             dontrun = function (event) {
                 ok(false, "Should not run after calling stopPropagation!");
             };
-            Options.event.addListener("foobar", dontrun, false);
-//            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", dontrun, false);
+//            Options.event.on("foobar", function anon(event) {
 //                this.removeEventListener(event.type, anon, false);
 
 //                same(event.defaultPrevented, false);
@@ -639,10 +639,10 @@
 //            }, false);
 
             Options.event.trigger("foobar", { cancelable: false });
-            Options.event.removeListener("foobar", dontrun, false);
+            Options.event.remove("foobar", dontrun, false);
 
 
-//            Options.event.addListener("foobar", function anon(event) {
+//            Options.event.on("foobar", function anon(event) {
 //                this.removeEventListener(event.type, anon, true);
 
 //                event.stopPropagation();
@@ -652,15 +652,15 @@
 //            var dontrun = function (event) {
 //                ok(false, "Should not run after calling stopPropagation!");
 //            };
-//            Options.event.addListener("foobar", dontrun, false);
+//            Options.event.on("foobar", dontrun, false);
 
 //            Options.event.trigger("foobar", { cancelable: false });
 //            Options.event.trigger("foobar", { cancelable: false });
 
-//            Options.event.removeListener("foobar", dontrun, false);
+//            Options.event.remove("foobar", dontrun, false);
 
 
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.bubbles, false);
@@ -673,15 +673,15 @@
             dontrun = function (event) {
                 ok(false, "Should not run, because the event doesn't bubble.");
             };
-            Options.event.addListener("foobar", dontrun, false);
+            Options.event.on("foobar", dontrun, false);
 
             Options.event.trigger("foobar", { bubbles: false });
             Options.event.trigger("foobar", { bubbles: false });
 
-            Options.event.removeListener("foobar", dontrun, false);
+            Options.event.remove("foobar", dontrun, false);
 
 
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.cancelable, true);
@@ -694,7 +694,7 @@
             });
 
 
-            Options.event.addListener("foobar", function anon(event) {
+            Options.event.on("foobar", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.cancelable, true);
@@ -707,7 +707,7 @@
             });
 
 
-            Options.event.addListener("quxcorge", function anon(event) {
+            Options.event.on("quxcorge", function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.type, "quxcorge");
@@ -719,7 +719,7 @@
             Options.event.trigger("quxcorge");
 
 
-            Options.event.addListener(undefined, function anon(event) {
+            Options.event.on(undefined, function anon(event) {
                 this.removeEventListener(event.type, anon, true);
 
                 same(event.type, undefined);
